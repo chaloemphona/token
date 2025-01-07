@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Request</title>
+    <style>
+        
+        pre {  /* สไตร์ตัวหนังสือ*/
+            padding: 10px; /*ห่างกัน 10 ทุกด้าน*/
+            border-radius: 5px; /*โค้งมน*/
+            white-space: pre-wrap; /**/
+            word-wrap: break-word; /*คำยาวเกินจะขึ้นบรรทัดใหม่ทันที่ ถ้าคำนั้นไม่ได้ต่อเนื้องกัน*/
+            font-family: 'Courier New', Courier, monospace; /*ฟอนต์ หลัก รอง รองสุท้าย*/
+            overflow-x: auto; /*ถ้ายาวเกินจะมีสกอบาร์ให้เลื่อนจอได้*/
+        }
+
+        button {
+            background-color: #eaffff;
+        }
+
+        #response_token { background-color: #f9f9f9; } /* สี */
+        #response_data { background-color: #fef7f7; } /* สี */
+        #response_metadata { background-color: #fefcf7; } /* สี */
+        
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+    <h1>ขอ API</h1>
+    <h3>อายุการใช้งาน 1 นาที</h3>
+    <form id="tokenForm">
+        <label for="username">ชื่อ:</label>
+        <input type="text" id="username" name="username" value="" required>
+        <button type="submit">ส่งคำขอ</button>
+    </form>
+    <pre id="response_token"></pre>
+
+    <h1>เลือก API เพื่อเรียกดูข้อมูล</h1>
+    <select id="apiSelect">
+        <option value="/api/v1/accidents/heatmap-rvp-death">Heatmap RVP Death</option>
+        <option value="/api/v1/accidents/grids-dbscan-2022-2020">Grids DBSCAN 2022-2020</option>
+        <option value="/api/v1/duckDBs/places/th/region">parqe</option>
+    </select>
+    <button id="callApi" disabled>เรียก API</button>
+    
+    <pre id="response_data"></pre>
+    <pre id="response_metadata"></pre> 
+
+    <script>
+        let token = ""; 
+        let username = ""; 
+
+        // รับชื่อและขอToken
+        document.getElementById('tokenForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            username = document.getElementById('username').value;
+
+            const response = await fetch('http://192.168.10.166:8080/api/v1/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username }),
+            });
+
+            const data = await response.json();
+            if (data.token) {
+                token = data.token;
+                document.getElementById('response_token').innerText = `Token: ${token}`;
+                document.getElementById('callApi').disabled = false;
+            } else {
+                document.getElementById('response_token').innerText = `Error: ${JSON.stringify(data)}`;
+            }
+        });
+
+        // เรียก API ตามที่เลือก
+        document.getElementById("callApi").addEventListener("click", async () => {
+            if (!token) {
+                alert("Please request a token first!");
+                return;
+            }
+
+            const selectedApi = document.getElementById("apiSelect").value; 
+            const response = await fetch(`http://192.168.10.166:8080${selectedApi}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (data.status === "success") {
+                document.getElementById("response_data").innerText = `{ \n "Status": "${data.status}" \n "Message": "${data.message}" \n "Data": ${JSON.stringify(data.data, null, 2)} \n }`;
+                document.getElementById("response_metadata").innerText = `metadata : \n${JSON.stringify(data.metadata, null, 2)}`;
+            } else {
+                document.getElementById("response_data").innerText = `Error: ${data.status}`;
+                document.getElementById("response_metadata").innerText = ''; 
+            }
+        });
+    </script>
+</body>
+</html>
