@@ -1,1 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Request</title>
+    <style>
+        pre {
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+        }
+
+        button {
+            background-color: #eaffff;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        #response_token {
+            background-color: #f9f9f9;
+        }
+
+        #response_data {
+            background-color: #fef7f7;
+        }
+
+        #response_metadata {
+            background-color: #fefcf7;
+        }
+
+        form,
+        select,
+        button {
+            margin: 10px 0;
+        }
+    </style>
+    <!-- <script src="axios.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
+</head>
+
+<body>
+    <h1>ขอ API</h1>
+    <h3>อายุการใช้งาน 1 นาที</h3>
+    <form id="tokenForm">
+        <label for="username">ชื่อ:</label>
+        <input type="text" id="username" name="username" value="" required>
+        <button type="submit">ส่งคำขอ</button>
+    </form>
+    <pre id="response_token"></pre>
+
+    <h1>เลือก API เพื่อเรียกดูข้อมูล</h1>
+    <!-- <select id="apiSelect">
+        <option value="">-- เลือก API --</option>
+        <option value="/api/v1/duckDBs/places/th/region?limit=5&region=Bangkok">parqe</option>
+        <option value="/api/v1/accidents/heatmap-rvp-death">Heatmap RVP Death</option>
+        <option value="/api/v1/accidents/grids-dbscan-2022-2020">Grids DBSCAN 2022-2020</option>
+    </select> -->
+    <button id="callApi" disabled>เรียก API</button>
+
+    <pre id="response_data"></pre>
+    <pre id="response_metadata"></pre>
+
+    <script>
+        let token = "";
+        let username = "";
+
+        // ขอ Token
+        document.getElementById('tokenForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            username = document.getElementById('username').value;
+            try {
+                const response = await fetch('https://47cf-125-26-174-54.ngrok-free.app/api/v1/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify({ username }),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+               
+                if (data.token) {
+                    token = data.token;
+                    document.getElementById('response_token').innerText = `Token: ${token}`;
+                    document.getElementById('callApi').disabled = false;
+                } else {
+                    document.getElementById('response_token').innerText = `Error: ${JSON.stringify(data)}`;
+                }
+            } catch (error) {
+                document.getElementById('response_token').innerText = `Error requesting token: ${error.message}`;
+            }
+        });
+
+        // เรียก API
+        document.getElementById("callApi").addEventListener("click", async () => {
+            // const apiEndpoint = document.getElementById("apiSelect").value;
+            // if (!apiEndpoint) {
+            //     document.getElementById("response_data").innerText = "กรุณาเลือก API ก่อน!";
+            //     return;
+            // }
+            // const selectedApi = document.getElementById("apiSelect").value;
+            // if (!selectedApi) {
+            //     alert("กรุณาเลือก API!");
+            //     return;
+            // }
+            try {
+                const response = await fetch(`https://47cf-125-26-174-54.ngrok-free.app/api/v1/accidents/heatmap-rvp-death`, {
+                    // //${selectedApi}  
+                    // //http://127.0.0.1:8000  
+                    // //https://41a5-125-26-174-54.ngrok-free.app
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        "ngrok-skip-browser-warning": 'skip-browser-warning'
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('res:', response)
+                console.log('data: ', data)
+                // console.log(responseText);
+                if (data.status === "success") {
+                    document.getElementById("response_data").innerText = JSON.stringify(data, null, 2);
+                    document.getElementById("response_metadata").innerText = JSON.stringify(data.metadata, null, 2);
+                } else {
+                    document.getElementById("response_data").innerText = `Error: ${data.message}`;
+                    document.getElementById("response_metadata").innerText = '';
+                }
+            }
+            catch (error) {
+                console.error("Error fetching data:", error);
+                document.getElementById("response_data").innerText = `Error: ${error.message}`;
+                document.getElementById("response_metadata").innerText = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
