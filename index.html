@@ -76,12 +76,15 @@
         let token = "";
         let username = "";
 
+
+        const BASE_URL = "https://1b5d-125-26-174-54.ngrok-free.app";
+
         // ขอ Token
         document.getElementById('tokenForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             username = document.getElementById('username').value;
             try {
-                const response = await fetch('https://47cf-125-26-174-54.ngrok-free.app/api/v1/token', {
+                const response = await fetch(`${BASE_URL}/api/v1/token`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ username }),
@@ -116,7 +119,7 @@
             //     return;
             // }
             try {
-                const response = await fetch(`https://47cf-125-26-174-54.ngrok-free.app/api/v1/accidents/heatmap-rvp-death`, {
+                const response = await fetch(`${BASE_URL}/api/v1/accidents/heatmap-rvp-death`, {
                     // //${selectedApi}  
                     // //http://127.0.0.1:8000  
                     // //https://41a5-125-26-174-54.ngrok-free.app
