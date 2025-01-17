@@ -75,6 +75,10 @@
     <pre id="response_data"></pre>
     <pre id="response_metadata"></pre>
 
+    
+    
+    
+
     <script>
         let token = "";
         let username = "";
@@ -122,7 +126,7 @@
             //     return;
             // }
             try {
-                const response = await fetch(`${BASE_URL}/api/v1/accidents/heatmap-rvp-death`, {
+                const response = await fetch(`${BASE_URL}/api/v1/duckDBs/places/th/region?limit=2&offset=0`, { ///api/v2/duckDBs/places/th/region  ///api/v1/accidents/heatmap-rvp-death
                     // //${selectedApi}  
                     // //http://127.0.0.1:8000  
                     // //https://41a5-125-26-174-54.ngrok-free.app
@@ -155,6 +159,8 @@
                 document.getElementById("response_metadata").innerText = '';
             }
         });
+
+        
     </script>
 </body>
 
